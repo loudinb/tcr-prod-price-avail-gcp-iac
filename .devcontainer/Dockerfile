@@ -1,5 +1,5 @@
 # [Choice] Ubuntu version (use ubuntu-22.04 or ubuntu-18.04 on local arm64/Apple Silicon): ubuntu-22.04, ubuntu-20.04, ubuntu-18.04
-ARG VARIANT=jammy
+ARG VARIANT=focal
 FROM ubuntu:${VARIANT}
 
 ARG USERNAME="vscode"
@@ -8,10 +8,10 @@ ARG USER_GID=$USER_UID
 
 # [Optional] Uncomment this section to install additional OS packages.
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends vim wget curl git zsh \
+    && apt-get -y install --no-install-recommends vim wget curl unzip git zsh \
     build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev \
-    libssl-dev libreadline-dev libffi-dev libbz2-dev \
-    ca-certificates sqlite3 libsqlite3-dev less
+    libssl-dev libreadline-dev libffi-dev libbz2-dev libsqlite3-dev \
+    ca-certificates sqlite3 software-properties-common less gpg lsb-core gnupg
 
 # ca certification update
 RUN update-ca-certificates
@@ -28,23 +28,28 @@ RUN rm /tmp/Python-3.8.10.tgz && rm -rf /tmp/Python-3.8.10
 # Python packages
 # RUN pip install <package>
 
-ADD "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-394.0.0-linux-x86_64.tar.gz" /opt/gcloud-cli.tar.gz
+# Google Cloud CLI (https://cloud.google.com/sdk/docs/quickstart-debian-ubuntu)
+ADD "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-394.0.0-linux-arm.tar.gz" /opt/gcloud-cli.tar.gz
 RUN cd /opt && tar -xf gcloud-cli.tar.gz
 RUN /opt/google-cloud-sdk/install.sh --quiet --usage-reporting=false --path-update=true
 RUN rm /opt/gcloud-cli.tar.gz
+
+# Terraform Linux Binary (https://www.terraform.io/downloads)
+ADD "https://releases.hashicorp.com/terraform/1.2.5/terraform_1.2.5_linux_arm64.zip" /opt/terraform/bin/terraform.zip
+RUN cd /opt/terraform/bin && unzip terraform.zip && rm terraform.zip
 
 # Create the user
 RUN groupadd --gid ${USER_UID} ${USERNAME} \
     && useradd --uid ${USER_UID} --gid ${USER_GID} -s /usr/bin/zsh -m ${USERNAME} \
     #
     # [Optional] Add sudo support. Omit if you don't need to install software after connecting.
-    && apt-get update \
-    && apt-get install -y sudo \
+    && apt-get update && apt-get install -y sudo \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
 
 USER vscode
 ENV PATH="${PATH}:/opt/google-cloud-sdk/bin"
+ENV PATH="${PATH}:/opt/terraform/bin"
 
 # Add Oh My Zsh
 RUN sh -c "$(wget -O - https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"

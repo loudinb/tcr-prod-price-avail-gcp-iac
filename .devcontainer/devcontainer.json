@@ -7,7 +7,7 @@
 		// Update 'VARIANT' to pick an Ubuntu version: jammy / ubuntu-22.04, focal / ubuntu-20.04, bionic /ubuntu-18.04
 		// Use ubuntu-22.04 or ubuntu-18.04 on local arm64/Apple Silicon.
 		"args": {
-			 "VARIANT": "jammy-20220421"
+			 "VARIANT": "focal-20220531"
 		}
 	},
 
@@ -41,6 +41,6 @@
 	// "postCreateCommand": "pip3 install --user -r requirements.txt",
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "wget https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,macos,linux -O .gitignore",
+	"postCreateCommand": "wget https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,macos,linux,terraform -O .gitignore",
 
 }
